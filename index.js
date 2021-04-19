@@ -18,3 +18,22 @@ var app = express()
   http.listen(PORT, function(){
     console.log('앱이 시작되었습니다. 포트번호 : '+PORT);
   });
+  var jsonMsg = {msg:''}; //io서버와 스프링간의 메세지 전송 담는 변수
+  //.on 함수는 클라이언트에서 서버로 소켓통신의 이벤트를 대기하는 명령
+  io.on('connection', function(socket){
+    console.log(socket.id + ' user connected');
+    io.emit('OnOff', jsonMsg); //스프링의 Model같은 역할. 접속한 client 소켓에 OnOff변수명으로 msg전송
+    // client가 접속을 끊었을 때
+    //결과확인은 http://localhost:5000/socket.io.socket.io.js
+    socket.on('disconnect', function(){
+      console.log(socket.id + ' user disconnected');
+    });
+    socket.on('OnOff', function(jsonMsg){ //1:1통신 받은 내용
+      console.log('소켓으로 받은 메세지는 '+ jsonMsg.msg);
+      jsonMsg={msg:jsonMsg.msg};
+      if(jsonMsg.msg=="updateRender"){
+        io.emit('OnOff', jsonMsg); //1:n 통신으로 보낸다.
+      }
+    });
+  });
+  
